@@ -13,7 +13,7 @@ import 'package:edu_master_special_links/main.dart';
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(SpecialLinks());
+    await tester.pumpWidget(const SpecialLinksApp());
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import 'app_colors.dart';
 
 class SpecialLinks extends StatelessWidget {
@@ -12,46 +13,48 @@ class SpecialLinks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Stream<QuerySnapshot<Map<String, dynamic>>> specialLinksStream = _firebase.collection('Links').snapshots();
-
     return Scaffold(
+      backgroundColor: Colors.green,
       appBar: AppBar(
         title: const Text("Links"),
       ),
-      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: specialLinksStream,
-        builder: (context, snap) {
-          if (snap.connectionState == ConnectionState.waiting) {
-            return const CircularProgressIndicator();
-          } else if (snap.hasData && snap.data != null) {
-            final docList = snap.data!.docs;
-            if (docList.isEmpty) {
-              return const Text("No Data"); // working
-            }
-            return ListView.builder(
-              itemCount: docList.length,
-              itemBuilder: (context, index) {
-                return Card(
-                  child: ListTile(
-                    onTap: () {
-                      _launchInBrowser(docList[index].get('URL'));
-                    },
-                    title: Text(docList[index].get('URL_Name')),
-                  ),
-                );
-              },
-            );
-          }
-          return const Text("Something went wrong!");
-        },
-      ),
+      body: _buildStreamListView(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => Add()));
+          Navigator.push(context, MaterialPageRoute(builder: (_) => Add()));
         },
-        backgroundColor: Colors.green,
         child: const Icon(Icons.add),
       ),
+    );
+  }
+
+  Widget _buildStreamListView() {
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: _firebase.collection('Links').snapshots(),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator();
+        } else if (snap.hasData && snap.data != null) {
+          final docList = snap.data!.docs;
+          if (docList.isEmpty) {
+            return const Text("No Data"); // working
+          }
+          return ListView.builder(
+            itemCount: docList.length,
+            itemBuilder: (context, index) {
+              return Card(
+                child: ListTile(
+                  onTap: () {
+                    _launchInBrowser(docList[index].get('URL'));
+                  },
+                  title: Text(docList[index].get('URL_Name')),
+                ),
+              );
+            },
+          );
+        }
+        return const Text("Something went wrong!");
+      },
     );
   }
 
@@ -135,10 +138,11 @@ class Add extends StatelessWidget {
                 "Add",
                 style: TextStyle(color: AppColors.btnColor),
               ),
-              onPressed: () {
-                create();
+              onPressed: () async {
+                await create();
                 urlNameController.clear();
                 urlController.clear();
+                Navigator.pop(context);
               },
             )
           ],
